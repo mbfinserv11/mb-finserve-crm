@@ -15,7 +15,8 @@ import {
   Facebook,
   CheckCircle2,
   Clock3,
-  AlertCircle
+  AlertCircle,
+  X
 } from "lucide-react";
 import "./styles.css";
 
@@ -24,45 +25,53 @@ const demoLeads = [
     id: 1,
     name: "Rakesh Kumar",
     phone: "98XXXXXX21",
+    whatsapp: "",
     product: "Personal Loan",
     source: "Facebook",
     status: "New",
     priority: "Hot",
     followup: "Today",
-    income: "₹32,000"
+    income: "₹32,000",
+    notes: ""
   },
   {
     id: 2,
     name: "Sunita Devi",
     phone: "97XXXXXX42",
+    whatsapp: "",
     product: "Credit Card",
     source: "WhatsApp",
     status: "Follow-up",
     priority: "Warm",
     followup: "Tomorrow",
-    income: "₹25,000"
+    income: "₹25,000",
+    notes: ""
   },
   {
     id: 3,
     name: "Mohan Singh",
     phone: "96XXXXXX18",
+    whatsapp: "",
     product: "Business Loan",
     source: "Website",
     status: "Documents",
     priority: "Hot",
     followup: "Today",
-    income: "₹48,000"
+    income: "₹48,000",
+    notes: ""
   },
   {
     id: 4,
     name: "Pooja Sharma",
     phone: "95XXXXXX73",
+    whatsapp: "",
     product: "Insurance",
     source: "Facebook",
     status: "Converted",
     priority: "Warm",
     followup: "—",
-    income: "₹41,000"
+    income: "₹41,000",
+    notes: ""
   }
 ];
 
@@ -71,6 +80,7 @@ function App() {
   const [mobile, setMobile] = useState(false);
   const [q, setQ] = useState("");
   const [leads, setLeads] = useState(demoLeads);
+  const [showLeadForm, setShowLeadForm] = useState(false);
 
   const nav = [
     ["Dashboard", LayoutDashboard],
@@ -92,11 +102,31 @@ function App() {
     [leads, q]
   );
 
+  function saveLead(form) {
+    const newLead = {
+      id: Date.now(),
+      name: form.name,
+      phone: form.phone,
+      whatsapp: form.whatsapp,
+      product: form.product,
+      source: form.source,
+      status: form.status,
+      priority: form.priority,
+      followup: form.followup,
+      income: form.income,
+      notes: form.notes
+    };
+
+    setLeads((prev) => [newLead, ...prev]);
+    setShowLeadForm(false);
+  }
+
   return (
     <div className="app">
       <aside className={mobile ? "side open" : "side"}>
         <div className="brand">
           <div className="logo">MB</div>
+
           <div>
             <b>MB FinServe</b>
             <small>CRM Workspace</small>
@@ -144,6 +174,7 @@ function App() {
             <button className="icon">
               <MessageCircle size={19} />
             </button>
+
             <div className="avatar">MF</div>
           </div>
         </header>
@@ -152,6 +183,10 @@ function App() {
           <Dashboard
             leads={leads}
             setPage={setPage}
+            openAddLead={() => {
+              setPage("Leads");
+              setShowLeadForm(true);
+            }}
           />
         )}
 
@@ -160,22 +195,7 @@ function App() {
             leads={filtered}
             q={q}
             setQ={setQ}
-            addLead={() =>
-              setLeads([
-                {
-                  id: Date.now(),
-                  name: "New Lead",
-                  phone: "",
-                  product: "Personal Loan",
-                  source: "Manual",
-                  status: "New",
-                  priority: "Warm",
-                  followup: "Today",
-                  income: ""
-                },
-                ...leads
-              ])
-            }
+            openAddLead={() => setShowLeadForm(true)}
           />
         )}
 
@@ -187,11 +207,23 @@ function App() {
 
         {page === "Settings" && <SettingsPage />}
       </main>
+
+      {showLeadForm && (
+        <AddLeadModal
+          onClose={() => setShowLeadForm(false)}
+          onSave={saveLead}
+        />
+      )}
     </div>
   );
 }
 
-function Dashboard({ leads, setPage }) {
+
+/* =========================
+   DASHBOARD
+========================= */
+
+function Dashboard({ leads, setPage, openAddLead }) {
   const cards = [
     [
       "Total Leads",
@@ -224,7 +256,9 @@ function Dashboard({ leads, setPage }) {
       <div className="welcome">
         <div>
           <span className="eyebrow">MB FINSERVE</span>
+
           <h2>Good morning. Control your pipeline.</h2>
+
           <p>
             Track leads from Facebook, WhatsApp and your website
             in one place.
@@ -233,7 +267,7 @@ function Dashboard({ leads, setPage }) {
 
         <button
           className="primary"
-          onClick={() => setPage("Leads")}
+          onClick={openAddLead}
         >
           <Plus size={18} />
           Add Lead
@@ -249,6 +283,7 @@ function Dashboard({ leads, setPage }) {
             </div>
 
             <strong>{value}</strong>
+
             <small>{subtitle}</small>
           </div>
         ))}
@@ -285,6 +320,7 @@ function Dashboard({ leads, setPage }) {
           <div className="source">
             <div>
               <span>Facebook</span>
+
               <b>
                 {leads.filter(
                   (x) => x.source === "Facebook"
@@ -298,6 +334,7 @@ function Dashboard({ leads, setPage }) {
 
             <div>
               <span>WhatsApp</span>
+
               <b>
                 {leads.filter(
                   (x) => x.source === "WhatsApp"
@@ -311,6 +348,7 @@ function Dashboard({ leads, setPage }) {
 
             <div>
               <span>Website</span>
+
               <b>
                 {leads.filter(
                   (x) => x.source === "Website"
@@ -328,7 +366,17 @@ function Dashboard({ leads, setPage }) {
   );
 }
 
-function Leads({ leads, q, setQ, addLead }) {
+
+/* =========================
+   LEADS
+========================= */
+
+function Leads({
+  leads,
+  q,
+  setQ,
+  openAddLead
+}) {
   return (
     <section className="content">
       <div className="toolbar">
@@ -342,7 +390,10 @@ function Leads({ leads, q, setQ, addLead }) {
           />
         </div>
 
-        <button className="primary" onClick={addLead}>
+        <button
+          className="primary"
+          onClick={openAddLead}
+        >
           <Plus size={18} />
           Add Lead
         </button>
@@ -356,6 +407,424 @@ function Leads({ leads, q, setQ, addLead }) {
     </section>
   );
 }
+
+
+/* =========================
+   ADD LEAD FORM
+========================= */
+
+function AddLeadModal({ onClose, onSave }) {
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    whatsapp: "",
+    product: "Personal Loan",
+    source: "Manual",
+    status: "New",
+    priority: "Warm",
+    followup: "Today",
+    income: "",
+    notes: ""
+  });
+
+  function updateField(field, value) {
+    setForm((prev) => ({
+      ...prev,
+      [field]: value
+    }));
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    if (!form.name.trim()) {
+      alert("Please enter customer name.");
+      return;
+    }
+
+    if (!form.phone.trim()) {
+      alert("Please enter phone number.");
+      return;
+    }
+
+    onSave(form);
+  }
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(15, 23, 42, 0.60)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px",
+        zIndex: 9999,
+        overflowY: "auto"
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "720px",
+          background: "#ffffff",
+          borderRadius: "18px",
+          boxShadow: "0 25px 60px rgba(0,0,0,0.20)",
+          overflow: "hidden"
+        }}
+      >
+        {/* FORM HEADER */}
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "20px 24px",
+            borderBottom: "1px solid #e5e7eb"
+          }}
+        >
+          <div>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: "22px",
+                color: "#111827"
+              }}
+            >
+              Add New Lead
+            </h2>
+
+            <p
+              style={{
+                margin: "5px 0 0",
+                color: "#6b7280",
+                fontSize: "14px"
+              }}
+            >
+              Enter customer details to create a new lead.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              border: "none",
+              background: "#f3f4f6",
+              borderRadius: "10px",
+              width: "40px",
+              height: "40px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer"
+            }}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* FORM */}
+
+        <form onSubmit={handleSubmit}>
+          <div
+            style={{
+              padding: "24px",
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(2, minmax(0, 1fr))",
+              gap: "18px"
+            }}
+          >
+
+            {/* NAME */}
+
+            <div>
+              <label style={labelStyle}>
+                Customer Name *
+              </label>
+
+              <input
+                type="text"
+                placeholder="Enter customer name"
+                value={form.name}
+                onChange={(e) =>
+                  updateField("name", e.target.value)
+                }
+                style={inputStyle}
+              />
+            </div>
+
+            {/* PHONE */}
+
+            <div>
+              <label style={labelStyle}>
+                Phone Number *
+              </label>
+
+              <input
+                type="tel"
+                placeholder="Enter phone number"
+                value={form.phone}
+                onChange={(e) =>
+                  updateField("phone", e.target.value)
+                }
+                style={inputStyle}
+              />
+            </div>
+
+            {/* WHATSAPP */}
+
+            <div>
+              <label style={labelStyle}>
+                WhatsApp Number
+              </label>
+
+              <input
+                type="tel"
+                placeholder="WhatsApp number"
+                value={form.whatsapp}
+                onChange={(e) =>
+                  updateField("whatsapp", e.target.value)
+                }
+                style={inputStyle}
+              />
+            </div>
+
+            {/* INCOME */}
+
+            <div>
+              <label style={labelStyle}>
+                Monthly Income
+              </label>
+
+              <input
+                type="text"
+                placeholder="₹ Monthly income"
+                value={form.income}
+                onChange={(e) =>
+                  updateField("income", e.target.value)
+                }
+                style={inputStyle}
+              />
+            </div>
+
+            {/* PRODUCT */}
+
+            <div>
+              <label style={labelStyle}>
+                Product
+              </label>
+
+              <select
+                value={form.product}
+                onChange={(e) =>
+                  updateField("product", e.target.value)
+                }
+                style={inputStyle}
+              >
+                <option>Personal Loan</option>
+                <option>Business Loan</option>
+                <option>Home Loan</option>
+                <option>Car Loan</option>
+                <option>Credit Card</option>
+                <option>Insurance</option>
+                <option>Bank Account</option>
+                <option>Demat Account</option>
+              </select>
+            </div>
+
+            {/* SOURCE */}
+
+            <div>
+              <label style={labelStyle}>
+                Lead Source
+              </label>
+
+              <select
+                value={form.source}
+                onChange={(e) =>
+                  updateField("source", e.target.value)
+                }
+                style={inputStyle}
+              >
+                <option>Manual</option>
+                <option>WhatsApp</option>
+                <option>Facebook</option>
+                <option>Website</option>
+                <option>Instagram</option>
+                <option>Referral</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            {/* STATUS */}
+
+            <div>
+              <label style={labelStyle}>
+                Status
+              </label>
+
+              <select
+                value={form.status}
+                onChange={(e) =>
+                  updateField("status", e.target.value)
+                }
+                style={inputStyle}
+              >
+                <option>New</option>
+                <option>Follow-up</option>
+                <option>Documents</option>
+                <option>Processing</option>
+                <option>Converted</option>
+                <option>Rejected</option>
+              </select>
+            </div>
+
+            {/* PRIORITY */}
+
+            <div>
+              <label style={labelStyle}>
+                Priority
+              </label>
+
+              <select
+                value={form.priority}
+                onChange={(e) =>
+                  updateField("priority", e.target.value)
+                }
+                style={inputStyle}
+              >
+                <option>Hot</option>
+                <option>Warm</option>
+                <option>Cold</option>
+              </select>
+            </div>
+
+            {/* FOLLOW UP */}
+
+            <div>
+              <label style={labelStyle}>
+                Follow-up
+              </label>
+
+              <select
+                value={form.followup}
+                onChange={(e) =>
+                  updateField("followup", e.target.value)
+                }
+                style={inputStyle}
+              >
+                <option>Today</option>
+                <option>Tomorrow</option>
+                <option>This Week</option>
+                <option>Next Week</option>
+                <option>—</option>
+              </select>
+            </div>
+
+            {/* NOTES */}
+
+            <div
+              style={{
+                gridColumn: "1 / -1"
+              }}
+            >
+              <label style={labelStyle}>
+                Notes
+              </label>
+
+              <textarea
+                placeholder="Customer requirement, CIBIL details, documents, follow-up notes..."
+                value={form.notes}
+                onChange={(e) =>
+                  updateField("notes", e.target.value)
+                }
+                rows={4}
+                style={{
+                  ...inputStyle,
+                  resize: "vertical",
+                  minHeight: "100px"
+                }}
+              />
+            </div>
+          </div>
+
+          {/* FOOTER */}
+
+          <div
+            style={{
+              padding: "16px 24px",
+              borderTop: "1px solid #e5e7eb",
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "12px"
+            }}
+          >
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                padding: "11px 20px",
+                borderRadius: "10px",
+                border: "1px solid #d1d5db",
+                background: "#ffffff",
+                color: "#374151",
+                fontWeight: 600,
+                cursor: "pointer"
+              }}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              className="primary"
+              style={{
+                padding: "11px 22px"
+              }}
+            >
+              <Plus size={18} />
+              Save Lead
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+
+/* =========================
+   FORM STYLES
+========================= */
+
+const labelStyle = {
+  display: "block",
+  marginBottom: "7px",
+  fontSize: "13px",
+  fontWeight: 600,
+  color: "#374151"
+};
+
+const inputStyle = {
+  width: "100%",
+  boxSizing: "border-box",
+  padding: "11px 12px",
+  border: "1px solid #d1d5db",
+  borderRadius: "9px",
+  background: "#ffffff",
+  color: "#111827",
+  fontSize: "14px",
+  outline: "none"
+};
+
+
+/* =========================
+   LEAD TABLE
+========================= */
 
 function LeadTable({ leads }) {
   return (
@@ -396,7 +865,8 @@ function LeadTable({ leads }) {
             <td>
               <span
                 className={
-                  "pill " + lead.priority.toLowerCase()
+                  "pill " +
+                  lead.priority.toLowerCase()
                 }
               >
                 {lead.priority}
@@ -411,137 +881,7 @@ function LeadTable({ leads }) {
   );
 }
 
-function Followups({ leads }) {
-  return (
-    <section className="content">
-      <div className="panel">
-        <div className="panelHead">
-          <div>
-            <h3>Follow-up Queue</h3>
-            <p>Today and upcoming customer callbacks</p>
-          </div>
-        </div>
 
-        <div className="followList">
-          {leads
-            .filter((x) => x.followup !== "—")
-            .map((lead) => (
-              <div className="follow" key={lead.id}>
-                <div className="date">
-                  CALL
-                  <br />
-                  <b>{lead.followup}</b>
-                </div>
-
-                <div>
-                  <b>{lead.name}</b>
-                  <p>
-                    {lead.product} • {lead.phone}
-                  </p>
-                </div>
-
-                <button className="secondary">
-                  Open
-                </button>
-              </div>
-            ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Applications() {
-  return (
-    <section className="content">
-      <div className="panel empty">
-        <FileText size={40} />
-
-        <h3>Applications</h3>
-
-        <p>
-          Application pipeline will connect to your
-          leads and document checklist.
-        </p>
-
-        <button className="primary">
-          Create Application
-        </button>
-      </div>
-    </section>
-  );
-}
-
-function Integrations() {
-  return (
-    <section className="content">
-      <div className="integrationGrid">
-        <Integration
-          icon={<MessageCircle />}
-          title="WhatsApp"
-          desc="Incoming messages → automatic CRM lead creation. API/webhook ready."
-        />
-
-        <Integration
-          icon={<Facebook />}
-          title="Facebook Lead Ads"
-          desc="Lead forms → automatic lead capture, source tracking and assignment."
-        />
-
-        <Integration
-          icon={<FileText />}
-          title="Google Drive"
-          desc="Customer documents can be stored in organised Drive folders."
-        />
-
-        <Integration
-          icon={<Plug />}
-          title="Webhooks"
-          desc="Secure endpoints for Meta events and future providers."
-        />
-      </div>
-    </section>
-  );
-}
-
-function Integration({ icon, title, desc }) {
-  return (
-    <div className="panel integration">
-      <div className="intIcon">{icon}</div>
-
-      <div>
-        <h3>{title}</h3>
-        <p>{desc}</p>
-        <span className="ready">
-          Architecture ready
-        </span>
-      </div>
-
-      <button className="secondary">
-        Configure
-      </button>
-    </div>
-  );
-}
-
-function SettingsPage() {
-  return (
-    <section className="content">
-      <div className="panel">
-        <h3>Workspace Settings</h3>
-
-        <p>Business: MB FinServe</p>
-
-        <p>
-          Products: Loans • Credit Cards • Insurance • Banking
-        </p>
-
-        <p>Stack: Vercel + Supabase</p>
-      </div>
-    </section>
-  );
-}
-
-createRoot(
-  document.getElementById("root")
-).render(<App />);
+/* =========================
+   FOLLOW UPS
+======================
