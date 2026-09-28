@@ -24,3 +24,4 @@ The UI includes architecture placeholders for:
 - Google Drive
 
 Live Meta integrations require Meta app credentials, webhook endpoints and the applicable WhatsApp/Facebook permissions. Secrets must stay server-side.
+Vercel deployment update
